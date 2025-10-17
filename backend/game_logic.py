@@ -11,33 +11,23 @@ class Snake:
         Return: None
         """
         self.length = initial_length
-        
-        # whether the snake has just eaten food
         self.just_ate_food = False
-        
-        # the snake's initial position - its head and tail are at the same cell
         self.snake_positions = [(1, 1)]
   
 class GameEnvironment:
-    def __init__(self, size: int, initial_length = 1) -> None:
+    def __init__(self, size: int) -> None:
         """Define the game environment's properties
         
         Args:
             size (int): the size of the n x n grid (square matrix)
-            initial_length (int): the initial length of the snake
             score (int): the score of the game
             grid (list): the n x n grid representing the game environment
             
         Return: None
         """
-        self.length = initial_length
         self.size = size
         self.score = 0
-        
-        # create an n x n grid initialized with 0 values
         self.grid = [[0] * size for _ in range(size)]
-        
-        # place the food (value = 1) in the central cell initially
         self.food_pos = (size // 2, size // 2)
 
 class GameLogic():
@@ -76,7 +66,7 @@ class GameLogic():
                 f.write(str(self.highest_score))
     
     def place_food(self):
-        # place food at a random position in the grid where the snake is not located
+        # Place food at a random position in the grid where the snake is not located
         empty = [
             (r, c)
             for r in range(self.GameEnvironment.size)
@@ -86,30 +76,30 @@ class GameLogic():
         self.GameEnvironment.food_pos = random.choice(empty)
         
     def move(self, direction):
-        # get the snake's head position (row, column)
+        # Get the snake's head position (row, column)
         head = self.Snake.snake_positions[0]
         
-        # calculate the new head position based on the direction
+        # Calculate the new head position based on the direction
         new_head = (head[0] + direction[0], head[1] + direction[1])
         
-        # check self-collision
+        # Check self-collision
         if new_head in self.Snake.snake_positions[1:]:
             raise Exception("Game Over: Self-collision")
         
-        # check wall-collision
+        # Check wall-collision
         if not (0 <= new_head[0] < self.GameEnvironment.size and 0 <= new_head[1] < self.GameEnvironment.size):
             raise Exception("Game Over: Wall-collision")
         
-        # add the new head position to the snake's positions
+        # Add the new head position to the snake's positions
         self.Snake.snake_positions.insert(0, new_head)
         
-        # check if the snake has eaten food
+        # Check if the snake has eaten food
         if new_head == self.GameEnvironment.food_pos:
             self.Snake.just_ate_food = True
             self.GameEnvironment.score += 1
             self.place_food()
         
-        # if the snake has not just eaten food, remove the last position
+        # If the snake has not just eaten food, remove the last position
         if not self.Snake.just_ate_food:
             self.Snake.snake_positions.pop()
         else:
