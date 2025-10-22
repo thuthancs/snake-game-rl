@@ -65,7 +65,13 @@ class QLearningAlgorithm:
         return self.q_table.get(state, {}).get(action, 0.0)
     
     def choose_action(self, state, epsilon: float):
-        pass
+        for action in self.actions:
+            if (state not in self.q_table) or (action not in self.q_table[state]):
+                return action
+        if random.random() < epsilon:
+            return random.choice(self.actions)
+        else:
+            return max(self.q_table[state], key=self.q_table[state].get())
     
     def update_q_value(self):
         pass
