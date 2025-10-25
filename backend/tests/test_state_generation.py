@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple
 
-GRID_SIZE = 3
+GRID_SIZE = 5
 HEAD_DIRECTIONS = ['upward', 'downward', 'rightward', 'leftward']
 HEAD_POSITIONS = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]
 FOOD_POSITIONS = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]

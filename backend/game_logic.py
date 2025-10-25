@@ -3,32 +3,18 @@ import os
 
 class Snake:
     def __init__(self, initial_length = 1) -> None:
-        """Define the snake's properties
-        
-        Args:
-            initial_length (int): the initial length of the snake
-            
-        Return: None
-        """
         self.length = initial_length
         self.just_ate_food = False
         self.snake_positions = [(1, 1)]
   
 class GameEnvironment:
-    def __init__(self, size: int) -> None:
-        """Define the game environment's properties
-        
-        Args:
-            size (int): the size of the n x n grid (square matrix)
-            score (int): the score of the game
-            grid (list): the n x n grid representing the game environment
-            
-        Return: None
-        """
-        self.size = size
+    def __init__(self, grid_size: int) -> None:
+        self.grid_size = grid_size
+        # Backwards-compatible alias used throughout the codebase
+        self.size = grid_size
         self.score = 0
-        self.grid = [[0] * size for _ in range(size)]
-        self.food_pos = (size // 2, size // 2)
+        self.grid = [[0] * grid_size for _ in range(grid_size)]
+        self.food_pos = (grid_size // 2, grid_size // 2)
 
 class GameLogic():
     # make sure that the down is 1 and up is -1 for the row index
@@ -37,15 +23,8 @@ class GameLogic():
     LEFT = (0, -1)
     RIGHT = (0, 1)
     
-    def __init__(self, size, score_history = []) -> None:
-        """Define the game logic's properties
-        
-        Args:
-            GameEnvironment (GameEnvironment): the game environment
-            Snake (Snake): the snake
-            directions (list): the possible directions the snake can move
-        """
-        self.GameEnvironment = GameEnvironment(size)
+    def __init__(self, grid_size, score_history = []) -> None:
+        self.GameEnvironment = GameEnvironment(grid_size)
         self.Snake = Snake()
         self.directions = [self.DOWN, self.UP, self.LEFT, self.RIGHT]
         self.highest_score = self.load_high_score()
@@ -69,8 +48,8 @@ class GameLogic():
         # Place food at a random position in the grid where the snake is not located
         empty = [
             (r, c)
-            for r in range(self.GameEnvironment.size)
-            for c in range(self.GameEnvironment.size)
+            for r in range(self.GameEnvironment.grid_size)
+            for c in range(self.GameEnvironment.grid_size)
             if (r, c) not in self.Snake.snake_positions
         ]
         self.GameEnvironment.food_pos = random.choice(empty)
@@ -87,7 +66,7 @@ class GameLogic():
             raise Exception("Game Over: Self-collision")
         
         # Check wall-collision
-        if not (0 <= new_head[0] < self.GameEnvironment.size and 0 <= new_head[1] < self.GameEnvironment.size):
+        if not (0 <= new_head[0] < self.GameEnvironment.grid_size and 0 <= new_head[1] < self.GameEnvironment.grid_size):
             raise Exception("Game Over: Wall-collision")
         
         # Add the new head position to the snake's positions
@@ -106,12 +85,6 @@ class GameLogic():
             self.Snake.just_ate_food = False
             
     def stop_game(self) -> int:
-        """Stop the game and return the score
-        
-        Args: None
-        
-        Return: int: the score of the game
-        """
         # update the highest score
         self.save_high_score()
         return self.GameEnvironment.score
@@ -125,7 +98,7 @@ class GameLogic():
         }
 
     def render(self):
-        size = self.GameEnvironment.size
+        size = self.GameEnvironment.grid_size
         grid = [['.'] * size for _ in range(size)]
         
         for r, c in self.Snake.snake_positions:
