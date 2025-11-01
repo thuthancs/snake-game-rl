@@ -40,7 +40,8 @@ h1 {
 }
 
 h2,
-p {
+p,
+figcaption {
   font-family: "Gaegu", sans-serif;
   font-weight: 500;
   font-size: 1.8em;
@@ -140,6 +141,109 @@ button:focus-visible {
 
 .game-over {
   text-align: center;
+}
+
+.learn-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2rem 10rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.learn-page h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  align-self: flex-start;
+  font-weight: bold;
+}
+
+.learn-page .toc {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.learn-page .toc h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.learn-page .toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.learn-page .toc li {
+  font-family: "Gaegu", sans-serif;
+  font-size: 1.3rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.learn-page .toc li:hover {
+  color: #646cff;
+}
+
+.learn-page .toc .toc-subheadings {
+  list-style: none;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.learn-page .toc .toc-subheadings li {
+  font-size: 1.1rem;
+  padding: 0.3rem 0;
+  color: #666;
+}
+
+.learn-page .toc .toc-subheadings li:hover {
+  color: #646cff;
+}
+
+.learn-page .content-sections {
+  width: 100%;
+}
+
+.learn-page .content-section {
+  margin-bottom: 3rem;
+  text-align: left;
+}
+
+.learn-page .content-section h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  font-weight: bold;
+}
+
+.learn-page .content-section h3 {
+  font-family: "Gaegu", sans-serif;
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.learn-page .content-section p {
+  font-size: 1.5rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.learn-page .content-section ul {
+  font-family: "Gaegu", sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  margin-left: 1.5rem;
+}
+
+.learn-page .content-section li {
+  margin-bottom: 0.5rem;
 }
 
 @media (prefers-color-scheme: light) {
