@@ -242,7 +242,7 @@ export default function SnakeGame({ gridSize, onNext, onGameOver, attemptsLeft }
                     </div>
                 ) : gameOver ? (
                     <div className="game-over">
-                        <p>Final Score: {Math.floor(score / 2)}</p>
+                        <p>Final Score: {score}</p>
                         <div className="grid-buttons">
                             {attemptsLeft > 0 ? (
                                 <button onClick={startGame}>Play Again</button>

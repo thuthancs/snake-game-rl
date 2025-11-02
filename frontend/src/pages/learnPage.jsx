@@ -57,26 +57,18 @@ export default function LearnPage() {
                     <figure style={{ margin: '1rem 0', textAlign: 'center' }}>
                         <img src="/2_length_snake.png" alt="2-length snake" style={{ maxWidth: '70%' }} />
                         <figcaption style={{ marginTop: '0.5rem', fontSize: '1rem', color: '#666', fontStyle: 'italic' }}>
-                            <strong>Figure 1: All possible geometric pattern for a 1-length snake.</strong> This is the special case where the snake's head is also its body.
-                            There are 9 possible head positions and for each position, there are 4 possible directions that the snake's head can face. When the snake is placed at a cell,
-                            there are 8 ways to place the food. As a result, there are a total of <strong>9x4x8 = 288</strong> game states for a one-length snake.
+                            <strong>Figure 2: All possible geometric pattern for a 2-length snake.</strong>
+                            There are 12 ways to place the 2-cell snake body (6 horizontal and 6 vertical ways). For each body occupation, there are 2 possible head directions. So, we have 24 configurations of the snake.
+                            There are 7 ways to place the food without overlapping the snake. As a result, we have <strong>12x2x7=168</strong> configurations in total for a 2-cell snake.
                         </figcaption>
                     </figure>
-
+                    <p>All other derivations of different snake lengths are shown here: <a href="https://github.com/thuthancs/snake-game-rl/pull/2">https://github.com/thuthancs/snake-game-rl/pull/2</a>. The total number of game states for a 3D is <strong>2032</strong>.</p>
                     <h3 id="action-space">List of Actions</h3>
-                    <p>The set of possible moves:</p>
-                    <ul>
-                        <li>Four directions of movement</li>
-                        <li>Constraints based on current direction</li>
-                    </ul>
-
-                    <h3 id="reward-system">Reward System</h3>
-                    <p>Feedback mechanism to guide learning:</p>
-                    <ul>
-                        <li>Positive reward for eating food</li>
-                        <li>Negative reward for collisions</li>
-                        <li>Small penalties for suboptimal moves</li>
-                    </ul>
+                    <p>Next, for each state that consists of snake head's position, its body segment, and food placement,
+                        we will set up a table called <span className="highlight">Q-table</span> (e.g., quality table) such that at each state, the snake can decide on either one of <span className="highlight">4 possible moves</span>: turn left, turn right, move straight, and turn around.
+                        Initially, all q-values will be set to 0 and will be updated during training.
+                    </p>
+                    <img src="/q_table.png" style={{ maxWidth: '100%' }}></img>
                 </>
             )
         },
@@ -89,6 +81,13 @@ export default function LearnPage() {
             ],
             content: (
                 <>
+                    <h3 id="reward-system">Reward System</h3>
+                    <p>In order to guide the learning of the snake, we need a <span className="highlight">feeback mechanism</span> with clear rewards and penalties:</p>
+                    <ul>
+                        <li>Positive reward for eating food: +10</li>
+                        <li>Negative reward for collisions: -10</li>
+                        <li>Small penalties for suboptimal moves: -0.1</li>
+                    </ul>
                     <h3 id="q-learning">Q-Learning Implementation</h3>
                     <p>The snake game uses Q-learning, where:</p>
                     <ul>
