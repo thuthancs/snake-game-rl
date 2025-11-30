@@ -1,7 +1,7 @@
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
-import LearnPage from './pages/staticLearnPage';
 import PlayPage from './pages/playPage';
+import LearnPage from './pages/staticLearnPage';
 
 function HomePage() {
   const navigate = useNavigate();

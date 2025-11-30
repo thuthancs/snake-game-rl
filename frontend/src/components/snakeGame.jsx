@@ -1,81 +1,186 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-DIRECTIONS = ["up", "down", "left", "right"]
+const DIRECTIONS = {
+  up: { row: -1, col: 0 },
+  down: { row: 1, col: 0 },
+  left: { row: 0, col: -1 },
+  right: { row: 0, col: 1 },
+};
 
-export default function SnakeGame(size) {
-    // Initialize the game environment as a 2D array filled with empty objects
-	const [gameEnv, setGameEnv] = useState([...Array(size)].map(() => Array(size).fill({})));
+const getNewFoodPosition = (size, snakeBody) => {
+  let newFood;
+  do {
+    newFood = {
+      row: Math.floor(Math.random() * size),
+      col: Math.floor(Math.random() * size),
+    };
+  } while (snakeBody.some(segment => segment.row === newFood.row && segment.col === newFood.col));
+  return newFood;
+};
 
-    // Initialize the game state with 4 key-value pairs
-    const [gameState, setGameState] = useState({
-        snakeHead: (null, null),
-        snakeHeadDirection: null,
-        snakeBodySegment: [],
-        foodPosition: (null, null)
-    })
+const getInitialState = (size) => {
+  const startPos = { row: Math.floor(size / 2), col: Math.floor(size / 2) };
+  return {
+    snakeBody: [startPos],
+    direction: 'right',
+    food: getNewFoodPosition(size, [startPos]),
+    score: 0,
+    attempts: 3,
+    maxScore: 0,
+    isGameRunning: false,
+    isGameOver: false,
+  };
+};
 
-    // Keep track of the score and attempts
-    const [score, setScore] = useState(0)
-    const [attempt, setAttempt] = useState(3)
-    
-    // Function to handle food placement
-    const handleFoodPlacement = () => {
-        // Filter all the cells that are not occupied by the snake
-        const cellsToPlaceFood = gameEnv.filter(cell => cell == {})
+export default function SnakeGame({ size = 3, onAttemptChange, onNext }) {
+  const [game, setGame] = useState(() => getInitialState(size));
+  const intervalRef = useRef(null);
 
-        // Get a random row index
-        const randomRowIndex = Math.floor(Math.random() * gameEnv.length);
+  const handleMove = useCallback(() => {
+    setGame(prev => {
+      if (!prev.isGameRunning) {
+        return prev;
+      }
 
-        // Get a random column index within that row
-        const randomColumnIndex = Math.floor(Math.random() * gameEnv[randomRowIndex].length);
-        
-        // Select a random cell from the valid empty cells
-        const randomCell = cellsToPlaceFood[randomRowIndex][randomColumnIndex];
+      const head = prev.snakeBody[0];
+      const move = DIRECTIONS[prev.direction];
+      const newHead = { row: head.row + move.row, col: head.col + move.col };
 
-        // Update the game state with the new food position
-        setGameState({
-            ...gameState,
-            foodPosition: randomCell
-        })
+      const wallCollision = newHead.row < 0 || newHead.row >= size || newHead.col < 0 || newHead.col >= size;
+      const selfCollision = prev.snakeBody.slice(1).some(segment => segment.row === newHead.row && segment.col === newHead.col);
+
+      if (wallCollision || selfCollision) {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        const newAttempts = prev.attempts - 1;
+        return {
+          ...prev,
+          isGameRunning: false,
+          maxScore: Math.max(prev.maxScore, prev.score),
+          attempts: newAttempts,
+          isGameOver: newAttempts === 0,
+          // Reset for the next attempt
+          snakeBody: [{ row: Math.floor(size / 2), col: Math.floor(size / 2) }],
+          direction: 'right',
+          score: 0,
+        };
+      }
+
+      const ateFood = newHead.row === prev.food.row && newHead.col === prev.food.col;
+      const newSnakeBody = [newHead, ...prev.snakeBody];
+      if (!ateFood) {
+        newSnakeBody.pop();
+      }
+
+      return {
+        ...prev,
+        snakeBody: newSnakeBody,
+        score: ateFood ? prev.score + 1 : prev.score,
+        food: ateFood ? getNewFoodPosition(size, newSnakeBody) : prev.food,
+      };
+    });
+  }, [size]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      const keyMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+      const newDirection = keyMap[e.key];
+      if (!newDirection) return;
+
+      setGame(prev => {
+        if (!prev.isGameRunning) return prev;
+        const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
+        if (prev.direction === opposite[newDirection]) return prev;
+        return { ...prev, direction: newDirection };
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Game loop manager
+  useEffect(() => {
+    if (game.isGameRunning) {
+      intervalRef.current = setInterval(handleMove, 500);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-    
-    const handleScoreChange = (gameState) => {
-        if (gameState.snakeHead == foodPosition) {
-            setScore(score + 1) 
-        }
-    }
-    
-    const handleChange = () => {
-        // How can we define the keyboard controller?
-        const newGameState = [...gameState]
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [game.isGameRunning, handleMove]);
+  
+  // Effect to report attempt changes to parent
+  useEffect(() => {
+    onAttemptChange?.(game.attempts);
+  }, [game.attempts, onAttemptChange]);
+  
+  const startGame = () => {
+    setGame(prev => {
+      const isFullReset = prev.isGameOver || prev.attempts === 0;
+      if (isFullReset) {
+        return { ...getInitialState(size), isGameRunning: true };
+      }
+      // This is a restart after losing a life
+      return {
+        ...prev,
+        snakeBody: [{ row: Math.floor(size / 2), col: Math.floor(size / 2) }],
+        direction: 'right',
+        score: 0,
+        isGameRunning: true,
+      };
+    });
+  };
 
-        // If the head is in the new position (when the snake eats the food and when it's just pure movement)
-        const newHeadPosition = (newRow, newCol)
-        newGameState.snakeHead = newHeadPosition
-        newGameState.snakeHeadDirection = newDirection
-        snakeBodySegment.unshift(newHeadPosition)
-        
-        // If the snake does not eat food, remove the tail
-        if (newGameState.snakeHead != gameState.foodPosition) {
-            snakeBodySegment.pop()
-        }
-        
-        // Check for edge collision and self-collision
-        if (newRow >= size or newRow < 0) {
-            gameOver()
-        } else if (newCol >= size or newCol < 0) {
-            gameOver()
-        } else if ((newRow, newCol) in gameState.snakeBodySegment) {
-            gameOver()
-        }
-        // Define the function to trigger the state change of the game
-        setGameState(newGameState)
-        setGameEnv([...gameEnv, newGameState])
-    }
-    
-    return (
+  return (
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      {game.isGameOver ? (
+        <div>
+          <h2>Game Over!</h2>
+          <p>Your maximum score was: {game.maxScore}</p>
+        </div>
+      ) : (
         <>
-                /*Render the 2D grid*/
+          <p>Score: {game.score} | Attempts: {game.attempts}</p>
+          <div style={{ display: 'inline-block', border: '2px solid black', marginTop: '10px' }}>
+            {[...Array(size)].map((_, row) => (
+              <div key={row} style={{ display: 'flex' }}>
+                {[...Array(size)].map((_, col) => {
+                  const isFood = game.food && game.food.row === row && game.food.col === col;
+                  const isHead = game.snakeBody[0].row === row && game.snakeBody[0].col === col;
+                  const isSnakeBody = game.snakeBody.slice(1).some(segment => segment.row === row && segment.col === col);
+                  
+                  let backgroundColor = '#f0f0f0';
+                  if (isHead) backgroundColor = '#2ecc71';
+                  else if (isSnakeBody) backgroundColor = '#27ae60';
+                  else if (isFood) backgroundColor = '#e74c3c';
+
+                  return (
+                    <div
+                      key={col}
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        backgroundColor,
+                        border: '1px solid #ddd',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </>
-    )
+      )}
+      <div>
+        <button 
+          onClick={game.isGameOver ? onNext : startGame} 
+          style={{ margin: '10px' }}
+        >
+          {game.isGameOver ? 'Next' : (game.isGameRunning ? 'Restart' : 'Start Game')}
+        </button>
+      </div>
+    </div>
+  );
 }
