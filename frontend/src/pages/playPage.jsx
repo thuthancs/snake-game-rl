@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SnakeGame from '../components/snakeGame';
 
 export default function PlayPage() {
+    const navigate = useNavigate();
     const [selectedGrid, setSelectedGrid] = useState(3);
     const [hasSelectedGrid, setHasSelectedGrid] = useState(false);
     const [attemptsLeft, setAttemptsLeft] = useState(3);
@@ -12,8 +14,7 @@ export default function PlayPage() {
     };
 
     const handleNext = () => {
-        // This will eventually navigate to the next page
-        console.log("Navigate to the next page");
+        navigate('/intro');
     };
 
     return (

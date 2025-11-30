@@ -1,5 +1,6 @@
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
+import IntroPage from './pages/intro';
 import PlayPage from './pages/playPage';
 import LearnPage from './pages/staticLearnPage';
 
@@ -40,6 +41,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/play" element={<PlayPage />} />
         <Route path="/learn" element={<LearnPage />} />
+        <Route path="/intro" element={<IntroPage />} />
       </Routes>
     </Router>
   )
