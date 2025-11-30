@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans&family=Quicksand:wght@400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600&display=swap');
 
 :root {
   font-family: 'Pixelify Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -42,10 +42,10 @@ h1 {
 h2,
 p,
 figcaption {
-  font-family: "Gaegu", sans-serif;
-  font-weight: 500;
-  font-size: 1.8em;
-  line-height: 1.4;
+  font-family: "Raleway", sans-serif;
+  font-weight: 400; /* a bit thinner */
+  font-size: 1.4em; /* slightly smaller */
+  line-height: 1.5;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -55,9 +55,9 @@ button {
   border: 2px solid #213547;
   width: 8em;
   padding: 0.5em 1em;
-  font-size: 1.5em;
-  font-weight: 500;
-  font-family: "Gaegu", sans-serif;
+  font-size: 1.25em; /* slightly smaller */
+  font-weight: 400;   /* a bit thinner */
+  font-family: "Raleway", sans-serif;
   background-color: white;
   color: #213547;
   cursor: pointer;
@@ -178,7 +178,7 @@ button:focus-visible {
 }
 
 .learn-page .toc li {
-  font-family: "Gaegu", sans-serif;
+  font-family: "Raleway", sans-serif;
   font-size: 1.3rem;
   padding: 0.5rem 0;
   cursor: pointer;
@@ -222,7 +222,7 @@ button:focus-visible {
 }
 
 .learn-page .content-section h3 {
-  font-family: "Gaegu", sans-serif;
+  font-family: "Raleway", sans-serif;
   font-size: 1.5rem;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
@@ -236,7 +236,7 @@ button:focus-visible {
 }
 
 .learn-page .content-section ul {
-  font-family: "Gaegu", sans-serif;
+  font-family: "Raleway", sans-serif;
   font-size: 1.5rem;
   line-height: 1.6;
   margin-left: 1.5rem;
