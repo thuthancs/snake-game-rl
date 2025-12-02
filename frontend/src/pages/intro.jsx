@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function IntroPage() {
   const steps = useMemo(() => [
@@ -19,8 +20,8 @@ export default function IntroPage() {
       highlights: ['decision', 'consequence'],
     },
     { 
-      text: "The information about the snake (learning agent) and its",
-      highlights: ['snapshot'],
+      text: "The information about the snake (learning agent) and its environment is called game state (a 'snapshot' of the game at a particular moment). The state includes the snake's position, the food's position, and the snake's current direction. Given the current state, the snake evaluates possible future actions it can take and selects the one that maximizes its expected future reward.",
+      highlights: ['snapshot', 'possible future actions'],
     },
     { 
       text: 'The reward is a feedback signal that tells the snake how well it is doing. In our case, the snake receives a positive reward (+1) for eating food and a negative reward (-1) for colliding with walls or itself. No reward (0) is given for other actions.',
@@ -31,6 +32,7 @@ export default function IntroPage() {
   const [activeStep, setActiveStep] = useState(0);
   const sectionsRef = useRef([]);
   sectionsRef.current = [];
+  const navigate = useNavigate();
 
   const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const renderWithHighlights = (text, highlights) => {
@@ -91,28 +93,33 @@ export default function IntroPage() {
   };
 
   return (
-    <div className="intro-grid">
-      <div className="intro-left">
-        {steps.map((step, idx) => (
-          <section
-            key={idx}
-            className="intro-section"
-            ref={setRefAtIndex(idx)}
-            data-step={idx}
-            aria-current={activeStep === idx ? 'step' : undefined}
-          >
-            <p>{renderWithHighlights(step.text, step.highlights)}</p>
-          </section>
-        ))}
+    <>
+      <div className="intro-grid">
+        <div className="intro-left">
+          {steps.map((step, idx) => (
+            <section
+              key={idx}
+              className="intro-section"
+              ref={setRefAtIndex(idx)}
+              data-step={idx}
+              aria-current={activeStep === idx ? 'step' : undefined}
+            >
+              <p>{renderWithHighlights(step.text, step.highlights)}</p>
+            </section>
+          ))}
+        </div>
+        <div className="intro-right">
+          <img
+            className="intro-diagram"
+            src={`/diagram/${activeStep + 1}.svg`}
+            alt={`Diagram step ${activeStep + 1}`}
+          />
+        </div>
       </div>
-      <div className="intro-right">
-        <img
-          className="intro-diagram"
-          src={`/diagram/${activeStep + 1}.svg`}
-          alt={`Diagram step ${activeStep + 1}`}
-        />
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+        <button onClick={() => navigate('/state-generation')}>Next</button>
       </div>
-    </div>
+    </>
   );
 }
 

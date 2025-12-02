@@ -123,7 +123,7 @@
   display: block;
   max-height: 70vh;
   object-fit: contain;
-  max-width: 520px;
+  max-width: 600px;
 }
 
 @media (max-width: 760px) {

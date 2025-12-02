@@ -2,7 +2,9 @@ import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-route
 import './App.css';
 import IntroPage from './pages/intro';
 import PlayPage from './pages/playPage';
+import StateGenerationPage from './pages/stateGeneration';
 import LearnPage from './pages/staticLearnPage';
+import TrainPage from './pages/trainPage';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -42,6 +44,8 @@ function App() {
         <Route path="/play" element={<PlayPage />} />
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/intro" element={<IntroPage />} />
+        <Route path="/state-generation" element={<StateGenerationPage />} />
+        <Route path="/train" element={<TrainPage />} />
       </Routes>
     </Router>
   )
