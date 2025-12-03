@@ -274,7 +274,7 @@ export default function StateGenerationPage() {
         })}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-        <button onClick={() => navigate('/train')}>Next</button>
+        <button onClick={() => navigate('/algorithm')}>Next</button>
       </div>
     </div>
   );
