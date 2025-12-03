@@ -71,10 +71,23 @@ export default function SnakeGame({ size = 3, onAttemptChange, onNext }) {
         newSnakeBody.pop();
       }
 
+      const newScore = ateFood ? prev.score + 1 : prev.score;
+      if (newSnakeBody.length === size * size) {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        return {
+          ...prev,
+          snakeBody: newSnakeBody,
+          score: newScore,
+          maxScore: Math.max(prev.maxScore, newScore),
+          isGameRunning: false,
+          isGameOver: true,
+        };
+      }
+
       return {
         ...prev,
         snakeBody: newSnakeBody,
-        score: ateFood ? prev.score + 1 : prev.score,
+        score: newScore,
         food: ateFood ? getNewFoodPosition(size, newSnakeBody) : prev.food,
       };
     });
@@ -142,7 +155,7 @@ export default function SnakeGame({ size = 3, onAttemptChange, onNext }) {
         </div>
       ) : (
         <>
-          <p>Score: {game.score} | Attempts: {game.attempts}</p>
+          <p>Score: {game.score}</p>
           <div style={{ display: 'inline-block', border: '2px solid black', marginTop: '10px' }}>
             {[...Array(size)].map((_, row) => (
               <div key={row} style={{ display: 'flex' }}>

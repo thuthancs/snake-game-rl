@@ -1,7 +1,9 @@
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
+import AlgorithmPage from './pages/algorithmPage';
 import IntroPage from './pages/intro';
 import PlayPage from './pages/playPage';
+import QLearningPage from './pages/qlearningPage';
 import StateGenerationPage from './pages/stateGeneration';
 import LearnPage from './pages/staticLearnPage';
 import TrainPage from './pages/trainPage';
@@ -46,6 +48,8 @@ function App() {
         <Route path="/intro" element={<IntroPage />} />
         <Route path="/state-generation" element={<StateGenerationPage />} />
         <Route path="/train" element={<TrainPage />} />
+        <Route path="/algorithm" element={<AlgorithmPage />} />
+        <Route path="/qlearning" element={<QLearningPage />} />
       </Routes>
     </Router>
   )

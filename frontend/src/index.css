@@ -304,6 +304,10 @@ button:focus-visible {
   width: 100%;
 }
 
+.q-learning-grid.intro-grid {
+  grid-template-columns: 0px 1fr;
+}
+
 .learn-page .content-section li {
   margin-bottom: 0.5rem;
 }
