@@ -1,29 +1,79 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const GRID_SIZE = 3;
-const ACTIONS = ['up', 'down', 'left', 'right'];
+
+// Match backend: relative actions and rewards from train.py / q_learning_agent.py
+const ACTIONS = ['turn_left', 'go_straight', 'turn_right', 'turn_around'];
 const REWARD_FOOD = 10;
 const REWARD_DEATH = -10;
-const REWARD_STEP = -1;
+const REWARD_STEP = -0.1;
 const GAMMA = 1.0;
 
-function randomFood(exclude) {
+const DIRECTIONS = {
+  upward: [-1, 0],
+  downward: [1, 0],
+  leftward: [0, -1],
+  rightward: [0, 1]
+};
+
+const TURNS = {
+  upward: {
+    turn_left: 'leftward',
+    go_straight: 'upward',
+    turn_right: 'rightward',
+    turn_around: 'downward'
+  },
+  downward: {
+    turn_left: 'rightward',
+    go_straight: 'downward',
+    turn_right: 'leftward',
+    turn_around: 'upward'
+  },
+  leftward: {
+    turn_left: 'downward',
+    go_straight: 'leftward',
+    turn_right: 'upward',
+    turn_around: 'rightward'
+  },
+  rightward: {
+    turn_left: 'upward',
+    go_straight: 'rightward',
+    turn_right: 'downward',
+    turn_around: 'leftward'
+  }
+};
+
+function randomFood(excludePositions) {
   while (true) {
     const r = Math.floor(Math.random() * GRID_SIZE);
     const c = Math.floor(Math.random() * GRID_SIZE);
-    if (!(exclude[0] === r && exclude[1] === c)) return [r, c];
+    const conflict = excludePositions.some(([er, ec]) => er === r && ec === c);
+    if (!conflict) return [r, c];
   }
 }
 
-function keyFor(state) {
-  const { head, food } = state;
-  return `${head[0]},${head[1]}|${food[0]},${food[1]}`;
+function keyFor(env) {
+  // Approximate Python get_state_representation:
+  // (head_pos, head_dir, body_tuple, food_pos)
+  const head = env.snake[0];
+  const dir = env.direction;
+  const bodySorted = [...env.snake].sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+  const bodyStr = bodySorted.map(([r, c]) => `${r},${c}`).join(';');
+  const foodStr = `${env.food[0]},${env.food[1]}`;
+  return `${head[0]},${head[1]}|${dir}|${bodyStr}|${foodStr}`;
 }
 
-function initState() {
-  const head = [Math.floor(GRID_SIZE / 2), Math.floor(GRID_SIZE / 2)];
-  const food = randomFood(head);
-  return { head, food };
+function initEnv() {
+  // Match backend defaults: snake starts in center, heading right, food placed randomly off-snake
+  const start = [Math.floor(GRID_SIZE / 2), Math.floor(GRID_SIZE / 2)];
+  const snake = [start];
+  const food = randomFood(snake);
+  return {
+    snake,
+    direction: 'rightward',
+    food,
+    score: 0
+  };
 }
 
 export default function TrainPlayground() {
@@ -34,7 +84,7 @@ export default function TrainPlayground() {
   const [episode, setEpisode] = useState(0);
   const [score, setScore] = useState(0);
   const [scores, setScores] = useState([]);
-  const [state, setState] = useState(() => initState());
+  const [env, setEnv] = useState(() => initEnv());
 
   const timerRef = useRef(null);
   const qTableRef = useRef(new Map());
@@ -62,26 +112,55 @@ export default function TrainPlayground() {
     return best[Math.floor(Math.random() * best.length)];
   }, []);
 
-  function stepEnv(curState, action) {
-    const [r, c] = curState.head;
-    let nr = r, nc = c;
-    if (action === 'up') nr -= 1;
-    if (action === 'down') nr += 1;
-    if (action === 'left') nc -= 1;
-    if (action === 'right') nc += 1;
+  function stepEnv(curEnv, action) {
+    const currentDir = curEnv.direction;
+    const newDirName = TURNS[currentDir][action];
+    const [dr, dc] = DIRECTIONS[newDirName];
+
+    const [hr, hc] = curEnv.snake[0];
+    const nr = hr + dr;
+    const nc = hc + dc;
+
+    // Wall collision
     const hitWall = nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE;
     if (hitWall) {
-      return { nextState: curState, reward: REWARD_DEATH, done: true };
+      return { nextEnv: curEnv, reward: REWARD_DEATH, done: true };
     }
-    const reachedFood = nr === curState.food[0] && nc === curState.food[1];
+
+    // Self collision
+    const hitsSelf = curEnv.snake.some(([sr, sc], idx) => idx > 0 && sr === nr && sc === nc);
+    if (hitsSelf) {
+      return { nextEnv: curEnv, reward: REWARD_DEATH, done: true };
+    }
+
+    const reachedFood = nr === curEnv.food[0] && nc === curEnv.food[1];
+
+    let newSnake = [[nr, nc], ...curEnv.snake];
+    let newFood = curEnv.food;
+    let newScore = curEnv.score;
+
     if (reachedFood) {
-      return {
-        nextState: { head: [nr, nc], food: randomFood([nr, nc]) },
-        reward: REWARD_FOOD,
-        done: true
-      };
+      newScore += 1;
+      newFood = randomFood(newSnake);
+      // Keep full length (no tail removal) to grow
+    } else {
+      // Normal move: remove tail
+      newSnake.pop();
     }
-    return { nextState: { head: [nr, nc], food: curState.food }, reward: REWARD_STEP, done: false };
+
+    const reward = reachedFood ? REWARD_FOOD : REWARD_STEP;
+
+    return {
+      nextEnv: {
+        ...curEnv,
+        snake: newSnake,
+        direction: newDirName,
+        food: newFood,
+        score: newScore
+      },
+      reward,
+      done: false
+    };
   }
 
   const qUpdate = useCallback((prevKey, action, reward, nextKey, alpha) => {
@@ -94,26 +173,27 @@ export default function TrainPlayground() {
   }, []);
 
   function resetEpisode() {
-    setState(initState());
+    const next = initEnv();
+    setEnv(next);
     setScore(0);
   }
 
   const tick = useCallback(() => {
-    setState(prev => {
+    setEnv(prev => {
       const sKey = keyFor(prev);
       const action = chooseAction(sKey, epsilon);
-      const { nextState, reward, done } = stepEnv(prev, action);
-      const nKey = keyFor(nextState);
+      const { nextEnv, reward, done } = stepEnv(prev, action);
+      const nKey = keyFor(nextEnv);
       qUpdate(sKey, action, reward, nKey, learningRate);
-      setScore(sc => sc + reward);
+      setScore(nextEnv.score);
       if (done) {
         setEpisode(e => e + 1);
-        setScores(arr => [...arr, (score + reward)]);
-        return initState();
+        setScores(arr => [...arr, nextEnv.score]);
+        return initEnv();
       }
-      return nextState;
+      return nextEnv;
     });
-  }, [epsilon, learningRate, score, chooseAction, qUpdate]);
+  }, [epsilon, learningRate, chooseAction, qUpdate]);
 
   useEffect(() => {
     if (isRunning) {
@@ -145,7 +225,7 @@ export default function TrainPlayground() {
 
   // Sparkline points
   const spark = useMemo(() => {
-    const w = 520, h = 140;
+    const w = 680, h = 200;
     const margin = { left: 44, right: 12, top: 12, bottom: 28 };
     const innerW = w - margin.left - margin.right;
     const innerH = h - margin.top - margin.bottom;
@@ -172,9 +252,9 @@ export default function TrainPlayground() {
   }, [scores]);
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
-        <label>Learning rate</label>
+    <div style={{ fontFamily: '"Raleway", sans-serif' }}>
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'nowrap', marginBottom: '1rem' }}>
+        <label style={{ fontFamily: '"Raleway", sans-serif', fontWeight: 500 }}>Learning rate</label>
         <input
           type="number"
           step="0.05"
@@ -184,7 +264,7 @@ export default function TrainPlayground() {
           onChange={(e) => setLearningRate(parseFloat(e.target.value))}
           style={{ width: 80 }}
         />
-        <label>Epsilon</label>
+        <label style={{ fontFamily: '"Raleway", sans-serif', fontWeight: 500 }}>Epsilon</label>
         <input
           type="number"
           step="0.01"
@@ -194,7 +274,7 @@ export default function TrainPlayground() {
           onChange={(e) => setEpsilon(parseFloat(e.target.value))}
           style={{ width: 80 }}
         />
-        <label>Speed</label>
+        <label style={{ fontFamily: '"Raleway", sans-serif', fontWeight: 500 }}>Speed</label>
         <input
           type="range"
           min="50"
@@ -202,9 +282,11 @@ export default function TrainPlayground() {
           value={speedMs}
           onChange={(e) => setSpeedMs(parseInt(e.target.value, 10))}
         />
-        <button onClick={handleStart}>Start</button>
-        <button onClick={handleStop}>Stop</button>
-        <button onClick={handleReset}>Reset</button>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'nowrap' }}>
+          <button onClick={handleStart}>Start</button>
+          <button onClick={handleStop}>Stop</button>
+          <button onClick={handleReset}>Reset</button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -217,13 +299,18 @@ export default function TrainPlayground() {
             background: '#fff'
           }}>
             {gridCells.map(([r, c], idx) => {
-              const isHead = state.head[0] === r && state.head[1] === c;
-              const isFood = state.food[0] === r && state.food[1] === c;
+              const isHead = env.snake[0][0] === r && env.snake[0][1] === c;
+              const isBody = env.snake.some(([sr, sc], i) => i > 0 && sr === r && sc === c);
+              const isFood = env.food[0] === r && env.food[1] === c;
+              let background = '#e6eef5';
+              if (isFood) background = '#e74c3c';
+              if (isBody) background = '#1d4ed8';
+              if (isHead) background = '#2ecc71';
               return (
                 <div key={idx} style={{
                   width: 60,
                   height: 60,
-                  background: isHead ? '#2ecc71' : (isFood ? '#e74c3c' : '#e6eef5'),
+                  background,
                   border: '1px solid #c7d2e0',
                   borderRadius: 4
                 }} />
