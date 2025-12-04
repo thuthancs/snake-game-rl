@@ -16,15 +16,15 @@ export default function IntroPage() {
       highlights: ['interacts', '2D grid'],
     },
     { 
-      text: 'At each step, the snake has to make a decision of where to go next: up, down, left, or right. Each action is associated with consequence: eating food, colliding with walls or itself, or simply moving forward.',
+      text: 'At each step, the snake has to make a decision of where to go next: up, down, left, or right. Each action (i.e., eating food, colliding with walls or itself, or simply moving forward.) is associated with a consequence (reward or penalty).',
       highlights: ['decision', 'consequence'],
     },
     { 
       text: "The information about the snake (learning agent) and its environment is called game state (a 'snapshot' of the game at a particular moment). The state includes the snake's position, the food's position, and the snake's current direction. Given the current state, the snake evaluates possible future actions it can take and selects the one that maximizes its expected future reward.",
-      highlights: ['snapshot', 'possible future actions'],
+      highlights: ['snapshot', 'possible future actions', 'maximizes its expected future reward'],
     },
     { 
-      text: 'The reward is a feedback signal that tells the snake how well it is doing. In our case, the snake receives a positive reward (+1) for eating food and a negative reward (-1) for colliding with walls or itself. No reward (0) is given for other actions.',
+      text: 'The reward is a feedback signal that tells the snake how well it is doing. In our case, the snake receives a positive reward (+10) for eating food and a negative reward (-10) for colliding with walls or itself. No reward (0) is given for other actions.',
       highlights: ['trained', 'higher scores'],
     },
   ], []);

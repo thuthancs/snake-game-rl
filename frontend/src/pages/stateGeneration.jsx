@@ -202,7 +202,9 @@ export default function StateGenerationPage() {
   return (
     <div className="learn-page state-page">
       <div className="state-header">
-        <h1 className="state-title">State Generation</h1>
+        <h1 className="state-title" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+          Compute All Valid Game States
+        </h1>
         <div style={{ marginBottom: '1.5rem' }}>
           <ol style={{ fontSize: '1em', paddingLeft: '1.5em' }}>
             <li>
