@@ -6,7 +6,7 @@ from .generate_game_states import generate_all_valid_states
 class QLearningAgent:
     REWARD_FOOD = 10
     REWARD_DEATH = -10
-    REWARD_STEP = -1
+    REWARD_STEP = 0
     
     def __init__(self, 
                  actions: list,
